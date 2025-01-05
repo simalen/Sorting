@@ -8,15 +8,14 @@ namespace Sorting
 {
     public class SortingResult
     {
-        public string AlgorithmName;
-        public string DatasetName;
-        public double elapsedMilliseconds;
+        public string AlgorithmName { get; }
 
-        public SortingResult(string datasetName, string algorithmName, double elapsedMilliseconds)
+        public List<double> ElapsedMilliSeconds;
+
+        public SortingResult(string AlgorithmName)
         {
-            DatasetName = datasetName;
-            AlgorithmName = algorithmName;
-            this.elapsedMilliseconds = elapsedMilliseconds;
+            this.AlgorithmName = AlgorithmName;
+            ElapsedMilliSeconds = new List<double>();
         }
     }
 }

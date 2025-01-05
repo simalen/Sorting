@@ -9,11 +9,11 @@ namespace Sorting
 {
     public class Test
     {
-        public static SortingResult Sort(string algorithmName, int[] dataset, Action<int[]> sortFunction, bool isSmallDataset, string datasetName)
+        public static void Sort(SortingResult result, int[] dataset, Action<int[]> sortFunction, string datasetName)
         {
             int[] dataCopy = (int[])dataset.Clone(); // Copy the array to avoid modifying the original
             Stopwatch stopwatch = new Stopwatch();
-            Console.WriteLine($"Testing {algorithmName} on {(isSmallDataset ? "Small Dataset" : "Large Dataset")}:");
+            Console.WriteLine($"Testing {result.AlgorithmName} on dataset of size ({dataset.Length}):");
             Console.OutputEncoding = System.Text.Encoding.UTF8; // For icons
 
             //Start the timer + write on console
@@ -23,7 +23,15 @@ namespace Sorting
             Console.Write("▶️");
             Console.ForegroundColor = ConsoleColor.White;
 
-            sortFunction(dataCopy); // Gets the data
+            // Ignorera
+            try
+            {
+                sortFunction(dataCopy);
+            }
+            catch(Exception) 
+            { 
+                Console.WriteLine("Sort resulted in a StackOverflow exception..");
+            }
 
             //Start the timer + write on console
             stopwatch.Stop();
@@ -36,13 +44,13 @@ namespace Sorting
             foreach (int item in dataCopy)
             {
                 Console.Write(item + " ");
-            }*/
-            
+            }
+            */
 
-            Console.Write($"  {algorithmName} completed in {stopwatch.Elapsed.TotalMilliseconds} ms 🕑");
+            Console.Write($"  {result.AlgorithmName} completed in {stopwatch.Elapsed.TotalMilliseconds} ms 🕑");
             Console.Write("\n");
             //Adds the result to the list
-            SortingResult result = new SortingResult(datasetName, algorithmName, stopwatch.Elapsed.TotalMilliseconds);
+            result.ElapsedMilliSeconds.Add(stopwatch.Elapsed.TotalMilliseconds);
 
             if (stopwatch.ElapsedMilliseconds > 10000.0)
             {
@@ -51,31 +59,27 @@ namespace Sorting
                 Console.ForegroundColor = ConsoleColor.White;
             }
             Console.WriteLine("\n");
-            return result;
+
         }
-        public static void DisplaySummaryTable(List<SortingResult> results)
+        public static void DisplaySummaryTable(List<ExportResult> export)
         {
             Console.WriteLine("\n");
-            Console.WriteLine("                  Summary Table (Fastest to Slowest) (P for parallel):");
-            Console.WriteLine("         -------------------------------------------------------------");
-            Console.WriteLine("                --------------------------------------------");
-            Console.WriteLine("               |     Dataset     |    Algorithm    | Speed  |");
-            Console.WriteLine("                --------------------------------------------");
+            Console.WriteLine("                Summary Table (Fastest to Slowest) (P for parallel):");
+            Console.WriteLine("            -------------------------------------------------------------");
+            Console.WriteLine("                ---------------------------------------------------");
+            Console.WriteLine("               |     Dataset     |    Algorithm    |    Speed(Avg)  |");
+            Console.WriteLine("                ---------------------------------------------------");
 
-            int count = 0;
-            foreach (var result in results)
+            foreach (var result in export)
             {
-                if (count == results.Count / 3)
+                Console.WriteLine("               - - - - - - - - - - - - - - - - - - - - - - - - -");
+                foreach (var item in result.Results)
                 {
-                    count = 0;
-                    Console.WriteLine("              - - - - - - - - - - - - - - - - - - - - - - - - -");
+                    double avg = item.ElapsedMilliSeconds.Sum();
+                    Console.WriteLine($"             | {result.Name,-15} | {item.AlgorithmName,-18} | {avg.ToString("#.###"),-10} ms |");
                 }
-                Console.WriteLine($"             | {result.DatasetName,-15} | {result.AlgorithmName,-15} | {result.elapsedMilliseconds,-10} ms |");
-                count++;
+                Console.WriteLine("               - - - - - - - - - - - - - - - - - - - - - - - - -");
             }
-            Console.WriteLine("               - - - - - - - - - - - - - - - - - - - - - - - - -");
-
-            
         }
     }
 }

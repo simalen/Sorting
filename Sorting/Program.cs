@@ -2,7 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 class Program
 {   
@@ -11,8 +11,11 @@ class Program
         Console.ForegroundColor = ConsoleColor.White;
 
         List<Dataset> datasets = new List<Dataset>();
-        
-        Dataset random = new Dataset(50000, DatasetType.RANDOM), reversed = new Dataset(50000, DatasetType.REVERSED), ordered = new Dataset(50000, DatasetType.ORDERED);
+        List<ExportResult> results = new List<ExportResult>();
+
+        // Samplesize är hur många gånger varje algoritm ska köras.
+        int datasetSize = 10000, sampleSize = 20;
+        Dataset random = new Dataset(datasetSize, DatasetType.RANDOM), reversed = new Dataset(datasetSize, DatasetType.REVERSED), ordered = new Dataset(datasetSize, DatasetType.ORDERED);
         datasets.Add(random);
         datasets.Add(reversed);
         datasets.Add(ordered);
@@ -24,18 +27,23 @@ class Program
         Console.WriteLine("                        █▀  █▄█ █▀▄    █  █ █ ▀ █ ██▄   ██▄ █▀  █▀  █ █▄▄ █ ██▄ █ ▀█ █▄▄  █ ");
         // Reset color
 
-        List<SortingResult> results = new List<SortingResult>();
-
         foreach (var dataset in datasets)
         {
+            ExportResult data_result = new ExportResult(datasetSize, dataset.Name);
+
             Console.WriteLine($"{dataset.Name}");
             Console.WriteLine("----------------------");
-            //results.Add(Test.Sort("Merge Sort", dataset.Data, Algorithms.MergeSort, isSmallDataset: dataset.Data.Length < 1000 ? true : false, dataset.Name));
-            results.Add(Test.Sort("Quick Sort", dataset.Data, Algorithms.QuickSort, isSmallDataset: dataset.Data.Length < 1000 ? true : false, dataset.Name));
-            //results.Add(Test.Sort("Insertion Sort", dataset.Data, Algorithms.InsertionSort, isSmallDataset: dataset.Data.Length < 1000 ? true : false, dataset.Name));
-            //results.Add(Test.Sort("Heap Sort", dataset.Data, Algorithms.HeapSort, isSmallDataset: dataset.Data.Length < 1000 ? true : false, dataset.Name));
-            //results.Add(Test.Sort("Ins. Sort (P)", dataset.Data, ParallelAlgorithms.InsertionSort, isSmallDataset: dataset.Data.Length < 1000 ? true : false, dataset.Name));
-            //results.Add(Test.Sort("Merge. Sort (P)", dataset.Data, ParallelAlgorithms.MergeSort, isSmallDataset: dataset.Data.Length < 1000 ? true : false, dataset.Name));
+
+            Tester("Insertion Sort", data_result, dataset, sampleSize, Algorithms.InsertionSort);
+            Tester("Insertion Sort (P)", data_result, dataset, sampleSize, ParallelAlgorithms.InsertionSort);
+            Tester("Merge Sort", data_result, dataset, sampleSize, Algorithms.MergeSort);
+            Tester("Merge Sort (P)", data_result, dataset, sampleSize, ParallelAlgorithms.MergeSort);
+            Tester("Quick Sort", data_result, dataset, sampleSize, Algorithms.QuickSort);
+            Tester("Quick Sort (P)", data_result, dataset, sampleSize, ParallelAlgorithms.QuickSort);
+            Tester("Heap Sort", data_result, dataset, sampleSize, Algorithms.HeapSort);
+            Tester("Heap Sort (P)", data_result, dataset, sampleSize, ParallelAlgorithms.HeapSort);
+
+            results.Add(data_result);
         }
 
         Console.WriteLine("              ██████╗ ███████╗███████╗██╗   ██╗██╗     ████████╗");
@@ -47,5 +55,22 @@ class Program
 
         // Display the summary table
         Test.DisplaySummaryTable(results);
+
+        string json_raw = JsonConvert.SerializeObject(results, Formatting.Indented);
+        using (StreamWriter output = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "output.json")))
+        {
+            output.WriteLine(json_raw);
+        }
+
+    }
+
+    public static void Tester(string name, ExportResult data_result, Dataset dataset, int amount, Action<int[]> action)
+    {
+        SortingResult result = new SortingResult(name);
+        for (int i = 0; i < amount; i++)
+        {
+            Test.Sort(result, dataset.Data, action, dataset.Name);
+        }
+        data_result.Results.Add(result);
     }
 }

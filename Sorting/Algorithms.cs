@@ -45,36 +45,56 @@ namespace Sorting
         // Quick Sort
         public static void QuickSort(int[] array)
         {
-            QuickSort(array, 0, array.Length - 1);
+            QuickSort(array, 0, array.Length-1);
         }
 
         public static void QuickSort(int[] array, int low, int high)
         {
-            if (low < high)
+            while (low < high)
             {
                 int pivotIndex = Partition(array, low, high);
-                QuickSort(array, low, pivotIndex - 1);
-                QuickSort(array, pivotIndex + 1, high);
+
+                if (pivotIndex - low <= high - (pivotIndex + 1))
+                {
+                    QuickSort(array, low, pivotIndex);
+                    low = pivotIndex + 1;
+                }
+                else
+                {
+                    QuickSort(array, pivotIndex + 1, high);
+                    high = pivotIndex;
+                }
             }
         }
 
         private static int Partition(int[] array, int low, int high)
         {
-            int pivot = array[high];
-            int i = low - 1;
 
-            for (int j = low; j < high; j++)
+            int x = array[low], i = low-1, j = high+1;
+
+            while (true)
             {
-                if (array[j] <= pivot)
+                do
                 {
                     i++;
-                    (array[i], array[j]) = (array[j], array[i]);
+                } while (i < high && array[i] < x);
+                do
+                {
+                    j--;
+                } while (j > low && array[j] > x);
+
+                if (i < j)
+                {
+                    int tmp = array[i];
+                    array[i] = array[j];
+                    array[j] = tmp;
+                }
+                else
+                {
+                    return j;
                 }
             }
-            (array[i + 1], array[high]) = (array[high], array[i + 1]);
-            return i + 1;
         }
-
 
         public static void InsertionSort(int[] arr)
         {
@@ -125,7 +145,5 @@ namespace Sorting
                 Heapify(array, n, largest);
             }
         }
-
-
     }
 }
